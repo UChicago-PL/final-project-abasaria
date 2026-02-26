@@ -78,6 +78,7 @@ executable finalproject
         Game.Logic
         Game.TestHelpers
         Game.DebugHelpers
+        Game.GUI
 
     -- Directories containing source files.
     hs-source-dirs:   app, src
