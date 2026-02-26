@@ -1,10 +1,11 @@
 module Game.Board
   ( initBoard
+  , updateBoard
+  , inBounds
   ) where
 
 import Game.Types
 import System.Random (randomRIO)
-import Control.Monad (foldM)
 
 -- | Initialize a new board with given rows, cols, and mine count
 initBoard :: Int -> Int -> Int -> IO Board
@@ -47,15 +48,15 @@ placeMines :: Board -> [Pos] -> Board
 placeMines = foldl placeMine
 
 placeMine :: Board -> Pos -> Board
-placeMine board (r, c) =
-  updateBoard board (r, c) (\cell -> cell { hasMine = True })
+placeMine b (r, c) =
+  updateBoard b (r, c) (\cell -> cell { hasMine = True })
 
 -- | Update a specific position on the board
 updateBoard :: Board -> Pos -> (Cell -> Cell) -> Board
-updateBoard board (r, c) f =
-  take r board
-  ++ [updateRow (board !! r)]
-  ++ drop (r + 1) board
+updateBoard b (r, c) f =
+  take r b
+  ++ [updateRow (b !! r)]
+  ++ drop (r + 1) b
   where
     updateRow row =
       take c row
@@ -64,30 +65,30 @@ updateBoard board (r, c) f =
 
 -- | Compute adjacent mine counts for all cells
 computeAdjacencies :: Board -> Board
-computeAdjacencies board =
+computeAdjacencies b =
   [ [ updateCell r c | c <- [0 .. cols - 1] ]
   | r <- [0 .. rows - 1]
   ]
   where
-    rows = length board
-    cols = length (head board)
+    rows = length b
+    cols = length (head b)
 
     updateCell r c =
-      let cell = board !! r !! c
+      let cell = b !! r !! c
       in if hasMine cell
            then cell
-           else cell { adjMines = countAdjacentMines board (r, c) }
+           else cell { adjMines = countAdjacentMines b (r, c) }
 
 -- | Count mines adjacent to a position
 countAdjacentMines :: Board -> Pos -> Int
-countAdjacentMines board (r, c) =
+countAdjacentMines b (r, c) =
   length
     [ ()
     | (dr, dc) <- deltas
     , let nr = r + dr
     , let nc = c + dc
-    , inBounds board (nr, nc)
-    , hasMine (board !! nr !! nc)
+    , inBounds b (nr, nc)
+    , hasMine (b !! nr !! nc)
     ]
   where
     deltas =
@@ -98,6 +99,6 @@ countAdjacentMines board (r, c) =
 
 -- | Check if a position is inside the board
 inBounds :: Board -> Pos -> Bool
-inBounds board (r, c) =
-  r >= 0 && r < length board &&
-  c >= 0 && c < length (head board)
+inBounds b (r, c) =
+  r >= 0 && r < length b &&
+  c >= 0 && c < length (head b)
