@@ -7,14 +7,18 @@ data Cell = Cell
   , revealed :: Bool
   , flagged  :: Bool
   , adjMines :: Int
-  } deriving (Show, Eq)
+  } deriving (Show)
 
 type Board = [[Cell]]
 
-data GameStatus = Playing | Lost | Won
-  deriving (Show, Eq)
+data GameStatus
+  = Menu
+  | Playing
+  | Won
+  | Lost
+  deriving (Eq, Show)
 
 data GameState = GameState
   { board  :: Board
   , status :: GameStatus
-  } deriving (Show, Eq)
+  } deriving (Show)
