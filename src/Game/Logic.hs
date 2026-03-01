@@ -6,9 +6,6 @@ module Game.Logic
 import Game.Types
 import Game.Board
 
---------------------------------------------------
--- Reveal Cell
---------------------------------------------------
 
 revealCell :: Pos -> GameState -> GameState
 revealCell pos gs@(GameState b currentStatus)
@@ -24,9 +21,6 @@ revealCell pos gs@(GameState b currentStatus)
     cell = b !! fst pos !! snd pos
     updateReveal brd = updateBoard brd pos (\c -> c { revealed = True })
 
---------------------------------------------------
--- Finalize Game After Reveal
---------------------------------------------------
 
 finalize :: Board -> GameState
 finalize newBoard =
@@ -38,9 +32,6 @@ allSafeRevealed :: Board -> Bool
 allSafeRevealed b =
   all (all (\c -> hasMine c || revealed c)) b
 
---------------------------------------------------
--- Flood Fill
---------------------------------------------------
 
 floodFill :: [Pos] -> Board -> Board
 floodFill [] b = b
@@ -56,9 +47,6 @@ floodFill (p:ps) b
     cell = b !! fst p !! snd p
     b' = updateBoard b p (\c -> c { revealed = True })
 
---------------------------------------------------
--- Flag Cell
---------------------------------------------------
 
 flagCell :: Pos -> GameState -> GameState
 flagCell pos gs@(GameState b currentStatus)
@@ -72,9 +60,6 @@ flagCell pos gs@(GameState b currentStatus)
   where
     cell = b !! fst pos !! snd pos
 
---------------------------------------------------
--- Neighbors
---------------------------------------------------
 
 neighbors :: Pos -> Board -> [Pos]
 neighbors (r, c) b =

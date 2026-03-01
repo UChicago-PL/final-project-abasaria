@@ -2,7 +2,7 @@ module Game.TestHelpers where
 
 import Game.Types
 
--- | Display the board in ASCII (normal game view)
+-- show board for testing
 printBoard :: Board -> IO ()
 printBoard b = mapM_ printRow b
   where
@@ -11,13 +11,13 @@ printBoard b = mapM_ printRow b
 
     showCell :: Cell -> String
     showCell c
-      | flagged c        = "F "           -- Flagged cell
-      | not (revealed c) = ". "           -- Hidden cell
-      | hasMine c        = "* "           -- Revealed mine
-      | adjMines c == 0  = "  "           -- Empty revealed
+      | flagged c        = "F "
+      | not (revealed c) = ". "
+      | hasMine c        = "* "
+      | adjMines c == 0  = "  "
       | otherwise        = show (adjMines c) ++ " "
 
--- | Display the board in ASCII with all mines revealed (debug view)
+-- show board for testing fully revealed
 printDebugBoard :: Board -> IO ()
 printDebugBoard b = mapM_ printRow (zip [0..] b)
   where
@@ -26,13 +26,13 @@ printDebugBoard b = mapM_ printRow (zip [0..] b)
 
     showCell :: Cell -> String
     showCell c
-      | flagged c        = "F "           -- Flagged cell
-      | hasMine c        = "* "           -- Mine always shown
-      | not (revealed c) = ". "           -- Hidden cell
-      | adjMines c == 0  = "  "           -- Empty revealed
+      | flagged c        = "F "
+      | hasMine c        = "* "
+      | not (revealed c) = ". "
+      | adjMines c == 0  = "  "
       | otherwise        = show (adjMines c) ++ " "
 
--- | Optional: Debug board with column numbers
+-- add coordinates
 printDebugBoardWithCoords :: Board -> IO ()
 printDebugBoardWithCoords b = do
     putStr "   "

@@ -14,10 +14,6 @@ import Graphics.Gloss.Interface.IO.Game
 cellSize :: Float
 cellSize = 35
 
---------------------------------------------------
--- DRAW
---------------------------------------------------
-
 draw :: GameState -> IO Picture
 draw gs =
   return $
@@ -25,9 +21,6 @@ draw gs =
       Menu -> drawMenu
       _ -> Pictures [drawBoard gs, drawUI gs]
 
---------------------------------------------------
--- MENU
---------------------------------------------------
 
 drawMenu :: Picture
 drawMenu =
@@ -50,9 +43,6 @@ drawMenu =
         (Scale 0.15 0.15 (Text "Press 3 for Hard (16x16)"))
     ]
 
---------------------------------------------------
--- DRAW BOARD
---------------------------------------------------
 
 drawBoard :: GameState -> Picture
 drawBoard gs =
@@ -83,9 +73,6 @@ drawCell c
             )
         ]
 
---------------------------------------------------
--- UI
---------------------------------------------------
 
 drawUI :: GameState -> Picture
 drawUI gs =
@@ -119,19 +106,15 @@ drawUI gs =
             (Scale 0.2 0.2 (Text statusText))
         ]
 
---------------------------------------------------
--- EVENTS
---------------------------------------------------
-
 handleEvent :: Event -> GameState -> IO GameState
--- Menu difficulty selection
+-- difficulty
 handleEvent (EventKey (Char '1') Up _ _) (GameState _ Menu) =
   newGame 8 8 10
 handleEvent (EventKey (Char '2') Up _ _) (GameState _ Menu) =
   newGame 12 12 20
 handleEvent (EventKey (Char '3') Up _ _) (GameState _ Menu) =
   newGame 16 16 40
--- Restart behavior
+-- restart
 handleEvent (EventKey (Char 'r') Up _ _) gs =
   case status gs of
     Playing ->
@@ -142,7 +125,7 @@ handleEvent (EventKey (Char 'r') Up _ _) gs =
       return (GameState [] Menu)
     Menu ->
       return gs
--- Mouse clicks only during Playing
+-- track mouse clicks for reveal and flag
 handleEvent (EventKey (MouseButton LeftButton) Up _ mousePos) gs
   | status gs == Playing =
       return $ revealCell (toBoardPos mousePos gs) gs
@@ -151,16 +134,9 @@ handleEvent (EventKey (MouseButton RightButton) Up _ mousePos) gs
       return $ flagCell (toBoardPos mousePos gs) gs
 handleEvent _ gs = return gs
 
---------------------------------------------------
--- UPDATE
---------------------------------------------------
 
 update :: Float -> GameState -> IO GameState
 update _ gs = return gs
-
---------------------------------------------------
--- HELPERS
---------------------------------------------------
 
 newGame :: Int -> Int -> Int -> IO GameState
 newGame r c m = do

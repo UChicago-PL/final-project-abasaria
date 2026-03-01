@@ -7,7 +7,7 @@ module Game.Board
 import Game.Types
 import System.Random (randomRIO)
 
--- | Initialize a new board with given rows, cols, and mine count
+-- new board with given rows, cols, and mine count
 initBoard :: Int -> Int -> Int -> IO Board
 initBoard rows cols mineCount = do
   minePositions <- generateMines rows cols mineCount
@@ -15,12 +15,12 @@ initBoard rows cols mineCount = do
       withMines = placeMines empty minePositions
   return (computeAdjacencies withMines)
 
--- | Create an empty board (no mines yet)
+-- empty board (no mines yet)
 emptyBoard :: Int -> Int -> Board
 emptyBoard rows cols =
   replicate rows (replicate cols emptyCell)
 
--- | A default empty cell
+-- default empty cell
 emptyCell :: Cell
 emptyCell = Cell
   { hasMine  = False
@@ -29,7 +29,7 @@ emptyCell = Cell
   , adjMines = 0
   }
 
--- | Randomly generate unique mine positions
+-- generate unique mine positionings
 generateMines :: Int -> Int -> Int -> IO [Pos]
 generateMines rows cols count = go []
   where
@@ -43,7 +43,7 @@ generateMines rows cols count = go []
             then go acc
             else go (pos : acc)
 
--- | Place mines at specified positions
+-- specified positions for mines
 placeMines :: Board -> [Pos] -> Board
 placeMines = foldl placeMine
 
@@ -51,7 +51,7 @@ placeMine :: Board -> Pos -> Board
 placeMine b (r, c) =
   updateBoard b (r, c) (\cell -> cell { hasMine = True })
 
--- | Update a specific position on the board
+-- specific position on the board updates
 updateBoard :: Board -> Pos -> (Cell -> Cell) -> Board
 updateBoard b (r, c) f =
   take r b
@@ -63,7 +63,7 @@ updateBoard b (r, c) f =
       ++ [f (row !! c)]
       ++ drop (c + 1) row
 
--- | Compute adjacent mine counts for all cells
+-- calculate adjacent mine counts for all cells
 computeAdjacencies :: Board -> Board
 computeAdjacencies b =
   [ [ updateCell r c | c <- [0 .. cols - 1] ]
@@ -79,7 +79,7 @@ computeAdjacencies b =
            then cell
            else cell { adjMines = countAdjacentMines b (r, c) }
 
--- | Count mines adjacent to a position
+-- tally mines adjacent to a position
 countAdjacentMines :: Board -> Pos -> Int
 countAdjacentMines b (r, c) =
   length
@@ -97,7 +97,7 @@ countAdjacentMines b (r, c) =
       , (1, -1),  (1, 0),  (1, 1)
       ]
 
--- | Check if a position is inside the board
+-- ensure a position is inside the board
 inBounds :: Board -> Pos -> Bool
 inBounds b (r, c) =
   r >= 0 && r < length b &&
