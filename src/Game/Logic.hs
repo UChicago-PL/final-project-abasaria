@@ -12,14 +12,23 @@ revealCell pos gs@(GameState b currentStatus)
   | currentStatus /= Playing = gs
   | not (inBounds b pos) = gs
   | revealed cell || flagged cell = gs
-  | hasMine cell = GameState (updateReveal b) Lost
+  | hasMine cell =
+      GameState (revealAllMines b) Lost
   | adjMines cell == 0 =
       finalize (floodFill [pos] b)
   | otherwise =
       finalize (updateBoard b pos (\c -> c { revealed = True }))
   where
     cell = b !! fst pos !! snd pos
-    updateReveal brd = updateBoard brd pos (\c -> c { revealed = True })
+
+
+revealAllMines :: Board -> Board
+revealAllMines =
+  map (map revealMine)
+  where
+    revealMine c
+      | hasMine c = c { revealed = True }
+      | otherwise = c
 
 
 finalize :: Board -> GameState
