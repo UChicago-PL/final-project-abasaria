@@ -11,8 +11,12 @@ import Game.Board
 import Game.Logic
 import Text.Read (readMaybe)
 
-cellSize :: Float
-cellSize = 35
+usableWidth :: Float
+usableWidth = 700
+
+usableHeight :: Float
+usableHeight = 700
+
 
 draw :: GameState -> IO Picture
 draw gs =
@@ -36,33 +40,42 @@ drawMenu =
     , translate (-250) (-40)
         (Scale 0.15 0.15 (Text "Press 4 for Custom Game"))
     , translate (-250) (-100)
-        (Scale 0.12 0.12 (Text "Custom game input will appear in terminal"))
+        (Scale 0.12 0.12 (Text "Custom game input in terminal"))
     ]
 
 
 drawBoard :: GameState -> Picture
 drawBoard gs =
-  Pictures
-    [ translate x y (Pictures [drawCell cell, border])
-    | (r, row) <- zip [0..] (board gs)
-    , (c, cell) <- zip [0..] row
-    , let x = fromIntegral c * cellSize - fromIntegral (cols gs) * cellSize / 2 + cellSize/2
-    , let y = fromIntegral (rows gs - r - 1) * cellSize - fromIntegral (rows gs) * cellSize / 2 + cellSize/2
-    , let border = color black (rectangleWire cellSize cellSize)
-    ]
+  let r = rows gs
+      c = cols gs
+      cellSize = min (usableWidth / fromIntegral c)
+                     (usableHeight / fromIntegral r)
 
-drawCell :: Cell -> Picture
-drawCell c
-  | flagged c = color red (rectangleSolid cellSize cellSize)
-  | not (revealed c) = color (greyN 0.5) (rectangleSolid cellSize cellSize)
-  | hasMine c = color black (rectangleSolid cellSize cellSize)
-  | adjMines c == 0 = color white (rectangleSolid cellSize cellSize)
+  in Pictures
+      [ translate x y (Pictures [drawCell cell cellSize, border cellSize])
+      | (rowIdx, row) <- zip [0..] (board gs)
+      , (colIdx, cell) <- zip [0..] row
+      , let x = fromIntegral colIdx * cellSize - fromIntegral c * cellSize / 2 + cellSize/2
+      , let y = fromIntegral (r - rowIdx - 1) * cellSize - fromIntegral r * cellSize / 2 + cellSize/2
+      ]
+
+border :: Float -> Picture
+border size =
+  color black (rectangleWire size size)
+
+drawCell :: Cell -> Float -> Picture
+drawCell c size
+  | flagged c = color red (rectangleSolid size size)
+  | not (revealed c) = color (greyN 0.5) (rectangleSolid size size)
+  | hasMine c = color black (rectangleSolid size size)
+  | adjMines c == 0 = color white (rectangleSolid size size)
   | otherwise =
       Pictures
-        [ color white (rectangleSolid cellSize cellSize)
+        [ color white (rectangleSolid size size)
         , color black
-            (translate (-cellSize/4) (-cellSize/4)
-              (Scale 0.2 0.2 (Text (show (adjMines c)))))
+            (translate (-size/4) (-size/4)
+              (Scale (size/200) (size/200)
+                (Text (show (adjMines c)))))
         ]
 
 
@@ -77,21 +90,34 @@ drawUI gs =
           , not (hasMine cell)
           ]
 
-      statusText =
+      statusPic =
         case status gs of
-          Playing -> ""
-          Won     -> "You Won! (Press R for Menu)"
-          Lost    -> "Game Over (Press R for Menu)"
-          Menu    -> ""
+          Won  -> boldText green "YOU WON!  (Press R for Menu)"
+          Lost -> boldText red   "GAME OVER  (Press R for Menu)"
+          _    -> Blank
 
   in Pictures
-      [ translate (-300) 320
+      [ translate (-350) 360
           (Scale 0.15 0.15
             (Text ("Revealed: " ++ show safeRevealed)))
-      , translate (-200) 360
-          (Scale 0.2 0.2 (Text statusText))
+      , translate (-300) 0 statusPic
       ]
 
+
+boldText :: Color -> String -> Picture
+boldText col str =
+  let base = Scale 0.3 0.3 (Text str)
+      offsets =
+        [ translate dx dy base
+        | dx <- [-1.5, 0, 1.5]
+        , dy <- [-1.5, 0, 1.5]
+        ]
+  in color col (Pictures offsets)
+
+
+--------------------------------------------------
+-- EVENTS
+--------------------------------------------------
 
 handleEvent :: Event -> GameState -> IO GameState
 
@@ -105,7 +131,7 @@ handleEvent (EventKey (Char '2') Up _ _) (GameState _ Menu) =
 handleEvent (EventKey (Char '3') Up _ _) (GameState _ Menu) =
   newGame 16 16 40
 
--- custom mode
+-- Custom mode
 handleEvent (EventKey (Char '4') Up _ _) (GameState _ Menu) = do
   putStrLn "Enter number of rows:"
   rInput <- getLine
@@ -122,7 +148,7 @@ handleEvent (EventKey (Char '4') Up _ _) (GameState _ Menu) = do
       putStrLn "Invalid input. Returning to menu."
       return (GameState [] Menu)
 
--- restart
+-- Restart
 handleEvent (EventKey (Char 'r') Up _ _) gs =
   case status gs of
     Playing -> newGame (rows gs) (cols gs) (countMines gs)
@@ -130,7 +156,7 @@ handleEvent (EventKey (Char 'r') Up _ _) gs =
     Lost    -> return (GameState [] Menu)
     Menu    -> return gs
 
--- mouse clicks
+-- Mouse clicks
 handleEvent (EventKey (MouseButton LeftButton) Up _ mousePos) gs
   | status gs == Playing =
       return $ revealCell (toBoardPos mousePos gs) gs
@@ -164,6 +190,8 @@ toBoardPos :: (Float, Float) -> GameState -> Pos
 toBoardPos (mx, my) gs =
   let r = rows gs
       c = cols gs
+      cellSize = min (usableWidth / fromIntegral c)
+                     (usableHeight / fromIntegral r)
       col = floor ((mx + fromIntegral c * cellSize / 2) / cellSize)
       row = r - 1 - floor ((my + fromIntegral r * cellSize / 2) / cellSize)
   in (row, col)
