@@ -115,10 +115,6 @@ boldText col str =
   in color col (Pictures offsets)
 
 
---------------------------------------------------
--- EVENTS
---------------------------------------------------
-
 handleEvent :: Event -> GameState -> IO GameState
 
 -- Difficulty selection

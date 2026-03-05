@@ -6,7 +6,7 @@ module Game.Logic
 import Game.Types
 import Game.Board
 
-
+-- reveals a cell and updates the game state accordingly
 revealCell :: Pos -> GameState -> GameState
 revealCell pos gs@(GameState b currentStatus)
   | currentStatus /= Playing = gs
@@ -21,7 +21,7 @@ revealCell pos gs@(GameState b currentStatus)
   where
     cell = b !! fst pos !! snd pos
 
-
+-- reveals all mines on the board (used on loss)
 revealAllMines :: Board -> Board
 revealAllMines =
   map (map revealMine)
@@ -30,18 +30,19 @@ revealAllMines =
       | hasMine c = c { revealed = True }
       | otherwise = c
 
-
+-- checks if all non-mine cells are revealed to see if the player has won
 finalize :: Board -> GameState
 finalize newBoard =
   if allSafeRevealed newBoard
      then GameState newBoard Won
      else GameState newBoard Playing
 
+-- checks if all non-mine cells are revealed(helper for above function)
 allSafeRevealed :: Board -> Bool
 allSafeRevealed b =
   all (all (\c -> hasMine c || revealed c)) b
 
-
+-- performs a flood fill to reveal all connected empty cells and their neighbors
 floodFill :: [Pos] -> Board -> Board
 floodFill [] b = b
 floodFill (p:ps) b
@@ -56,7 +57,7 @@ floodFill (p:ps) b
     cell = b !! fst p !! snd p
     b' = updateBoard b p (\c -> c { revealed = True })
 
-
+-- flagged state functionality
 flagCell :: Pos -> GameState -> GameState
 flagCell pos gs@(GameState b currentStatus)
   | currentStatus /= Playing = gs
@@ -69,7 +70,7 @@ flagCell pos gs@(GameState b currentStatus)
   where
     cell = b !! fst pos !! snd pos
 
-
+-- gets valid neighboring positions for flood fill
 neighbors :: Pos -> Board -> [Pos]
 neighbors (r, c) b =
   [ (r + dr, c + dc)

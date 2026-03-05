@@ -2,6 +2,7 @@ module Game.Types where
 
 type Pos = (Int, Int)
 
+-- represents a single cell on the board, with its properties
 data Cell = Cell
   { hasMine  :: Bool
   , revealed :: Bool
@@ -11,6 +12,7 @@ data Cell = Cell
 
 type Board = [[Cell]]
 
+-- represents the overall game state, including the board and current status
 data GameStatus
   = Menu
   | Playing
