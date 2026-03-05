@@ -17,7 +17,7 @@ usableWidth = 700
 usableHeight :: Float
 usableHeight = 700
 
-
+-- main drawing function
 draw :: GameState -> IO Picture
 draw gs =
   return $
@@ -25,7 +25,7 @@ draw gs =
       Menu -> drawMenu
       _    -> Pictures [drawBoard gs, drawUI gs]
 
-
+-- draw menu
 drawMenu :: Picture
 drawMenu =
   Pictures
@@ -43,7 +43,7 @@ drawMenu =
         (Scale 0.12 0.12 (Text "Custom game input in terminal"))
     ]
 
-
+-- draw game board
 drawBoard :: GameState -> Picture
 drawBoard gs =
   let r = rows gs
@@ -59,10 +59,12 @@ drawBoard gs =
       , let y = fromIntegral (r - rowIdx - 1) * cellSize - fromIntegral r * cellSize / 2 + cellSize/2
       ]
 
+-- draw cell border
 border :: Float -> Picture
 border size =
   color black (rectangleWire size size)
 
+-- draw cell based on its state
 drawCell :: Cell -> Float -> Picture
 drawCell c size
   | flagged c = color red (rectangleSolid size size)
@@ -78,7 +80,7 @@ drawCell c size
                 (Text (show (adjMines c)))))
         ]
 
-
+-- draw UI elements(revealed count and status)
 drawUI :: GameState -> Picture
 drawUI gs =
   let safeRevealed =
@@ -103,7 +105,7 @@ drawUI gs =
       , translate (-300) 0 statusPic
       ]
 
-
+-- helper to draw bold text
 boldText :: Color -> String -> Picture
 boldText col str =
   let base = Scale 0.3 0.3 (Text str)
@@ -163,7 +165,6 @@ handleEvent (EventKey (MouseButton RightButton) Up _ mousePos) gs
 
 handleEvent _ gs = return gs
 
-
 update :: Float -> GameState -> IO GameState
 update _ gs = return gs
 
@@ -182,6 +183,7 @@ countMines :: GameState -> Int
 countMines gs =
   length [ () | row <- board gs, cell <- row, hasMine cell ]
 
+-- convert mouse coordinates to board position
 toBoardPos :: (Float, Float) -> GameState -> Pos
 toBoardPos (mx, my) gs =
   let r = rows gs
